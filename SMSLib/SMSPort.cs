@@ -115,6 +115,7 @@ namespace opensms
             }
         }
 
+        #region SEND SMS
         public void SendSMS(bool unicode, string message, string[] receiversNo)
         {
             try
@@ -154,7 +155,74 @@ namespace opensms
                 Log("ERROR", "Exception in Sending SMS: " + ex.Message);
             }
         }
+        #endregion
 
+        #region RECEIVE SMS
+        public void ReadSMS()
+        {
+            string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
+            try
+            {
+                // Read all SMS messages from the storage
+                DecodedShortMessage[] messages = comm.ReadMessages(PhoneMessageStatus.All, storage);
+                foreach (DecodedShortMessage message in messages)
+                {
+                    if (message.Data.UserDataText == "شلام")
+                        Console.WriteLine("OK) Length: {0} Data: {1}", message.Data.UserDataLength, message.Data.UserDataText);
+                    else
+                        Console.WriteLine("NOK) Length: {0} Data: {1}", message.Data.UserDataLength, message.Data.UserDataText);
+                    //Output(string.Format("Message status = {0}, Location = {1}/{2}",
+                    //    StatusToString(message.Status), message.Storage, message.Index));
+                    //ShowMessage(message.Data);
+                    //Output("");
+                }
+                //Output(string.Format("{0,9} messages read.", messages.Length.ToString()));
+                //Output("");
+            }
+            catch (Exception ex)
+            {
+                Log("ERROR", "Exception in Reading SMS from GSM Modem: " + ex.Message);
+            }
+        }
+
+        public void DelSMS(int index)
+        {
+            string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
+            try
+            {
+                // Delete the message with the specified index from storage
+                if (index >= 0)
+                    comm.DeleteMessage(index, storage);
+            }
+            catch (Exception ex)
+            {
+                Log("ERROR", "Exception in Deleting SMS from GSM Modem: " + ex.Message);
+            }
+        }
+
+        public void DelAllSMS()
+        {
+            DelAllSMS(DeleteScope.All);
+        }
+
+        protected void DelAllSMS(DeleteScope scope)
+        {
+            string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
+            try
+            {
+                // Delete the message with the specified index from storage
+                comm.DeleteMessages(DeleteScope.All, storage);
+            }
+            catch (Exception ex)
+            {
+                Log("ERROR", "Exception in Deleting SMS from GSM Modem: " + ex.Message);
+            }
+        }
+        #endregion
+
+        #region GENERAL
+
+        #endregion
 
     }
 }
