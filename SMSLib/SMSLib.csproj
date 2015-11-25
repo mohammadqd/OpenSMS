@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SimpleMessage.cs" />
     <Compile Include="SMSPort.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

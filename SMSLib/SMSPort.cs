@@ -2,7 +2,7 @@
 using System.Linq;
 using GsmComm.PduConverter;
 using GsmComm.GsmCommunication;
-
+using System.Collections.Generic;
 
 namespace opensms
 {
@@ -158,30 +158,19 @@ namespace opensms
         #endregion
 
         #region RECEIVE SMS
-        public void ReadSMS()
+        public DecodedShortMessage[] ReadSMS()
         {
             string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
             try
             {
                 // Read all SMS messages from the storage
                 DecodedShortMessage[] messages = comm.ReadMessages(PhoneMessageStatus.All, storage);
-                foreach (DecodedShortMessage message in messages)
-                {
-                    if (message.Data.UserDataText == "شلام")
-                        Console.WriteLine("OK) Length: {0} Data: {1}", message.Data.UserDataLength, message.Data.UserDataText);
-                    else
-                        Console.WriteLine("NOK) Length: {0} Data: {1}", message.Data.UserDataLength, message.Data.UserDataText);
-                    //Output(string.Format("Message status = {0}, Location = {1}/{2}",
-                    //    StatusToString(message.Status), message.Storage, message.Index));
-                    //ShowMessage(message.Data);
-                    //Output("");
-                }
-                //Output(string.Format("{0,9} messages read.", messages.Length.ToString()));
-                //Output("");
+                return messages;
             }
             catch (Exception ex)
             {
                 Log("ERROR", "Exception in Reading SMS from GSM Modem: " + ex.Message);
+                return new DecodedShortMessage[0];
             }
         }
 
@@ -218,6 +207,15 @@ namespace opensms
                 Log("ERROR", "Exception in Deleting SMS from GSM Modem: " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// To delete all read sms
+        /// </summary>
+        public void DelAllReadSMS()
+        {
+            DelAllSMS(DeleteScope.Read);
+        }
+
         #endregion
 
         #region GENERAL
