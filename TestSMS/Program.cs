@@ -18,7 +18,7 @@ namespace TestSMS
         static void Main(string[] args)
         {
             Console.WriteLine("Enter to Start ...");
-            SMSPort smsPort = new SMSPort("COM25, 19200, 30", "09128448937", true);
+            SMSPort smsPort = new SMSPort("COM4, 19200, 30", "09128448937", true);
             Console.ReadLine();
 
             //smsPort.SendSMS(false, "Test 3", new String[] { "09128448937" });

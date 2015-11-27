@@ -30,17 +30,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GSMCommServer">
-      <HintPath>..\..\..\..\Hamgam Projects\HITSC\HITSCCEP\HITCEPLib\bin\Debug\GSMCommServer.dll</HintPath>
+    <Reference Include="GSMCommServer, Version=1.21.0.0, Culture=neutral, PublicKeyToken=515d87df384dcc81, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\GSMCommServer.dll</HintPath>
     </Reference>
-    <Reference Include="GSMCommShared">
-      <HintPath>..\..\..\..\Hamgam Projects\HITSC\HITSCCEP\HITCEPLib\bin\Debug\GSMCommShared.dll</HintPath>
+    <Reference Include="GSMCommShared, Version=1.21.0.0, Culture=neutral, PublicKeyToken=515d87df384dcc81, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\GSMCommShared.dll</HintPath>
     </Reference>
-    <Reference Include="GSMCommunication">
-      <HintPath>..\..\..\..\Hamgam Projects\HITSC\HITSCCEP\HITCEPLib\bin\Debug\GSMCommunication.dll</HintPath>
+    <Reference Include="GSMCommunication, Version=1.21.0.0, Culture=neutral, PublicKeyToken=515d87df384dcc81, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\GSMCommunication.dll</HintPath>
     </Reference>
-    <Reference Include="PDUConverter">
-      <HintPath>..\..\..\..\Hamgam Projects\HITSC\HITSCCEP\HITCEPLib\bin\Debug\PDUConverter.dll</HintPath>
+    <Reference Include="PDUConverter, Version=1.21.0.0, Culture=neutral, PublicKeyToken=515d87df384dcc81, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\PDUConverter.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

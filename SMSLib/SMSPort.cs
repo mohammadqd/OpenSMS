@@ -19,208 +19,253 @@ namespace opensms
         public int timeout;
 
         /// <summary>
-        /// Main constructor
+        /// checking if modem is connected
         /// </summary>
-        /// <param name="_COMCONFIG"> com config including COM port, baud rate and timeout e.g. "COM4,19200,30"</param>
-        /// <param name="_receiversNo">list of receivers e.g. 09124568798,09134568798 </param>
-        /// <param name="_isActive">true: port will be active false: passive</param>
-        public SMSPort(string _COMCONFIG, string _receiversNo, bool _isActive)
+        public bool isConnected 
+        {
+            get
+            {
+                try
+                {
+                    if (comm != null && !comm.IsConnected())
+                        return false;
+                    else
+                        return true;
+                }
+                catch (Exception ex)
+                {
+                    Log("ERROR", "Exception in checking GSM Modem connection: " + ex.Message);
+                    return false;
+                }
+            }
+        }
+        /// <summary>
+        /// check signal strength (disconnected --> 0)
+        /// </summary>
+        public int signalStrength
+        {
+            get
+            {
+                try
+                {
+                    if (isConnected)
+                    {
+                        return comm.GetSignalQuality().SignalStrength;
+                    }
+                    else
+                        return 0;
+                }
+                catch (Exception ex)
+                {
+                    Log("ERROR", "Exception in checking GSM Modem connection: " + ex.Message);
+                    return 0;
+                }
+
+            }
+        } 
+            /// <summary>
+            /// Main constructor
+            /// </summary>
+            /// <param name="_COMCONFIG"> com config including COM port, baud rate and timeout e.g. "COM4,19200,30"</param>
+            /// <param name="_receiversNo">list of receivers e.g. 09124568798,09134568798 </param>
+            /// <param name="_isActive">true: port will be active false: passive</param>
+            public SMSPort(string _COMCONFIG, string _receiversNo, bool _isActive)
         {
             Log("INFO", "SMS port constructed");
             Setup(_COMCONFIG, _receiversNo, _isActive);
+    }
+
+    /// <summary>
+    /// Setup
+    /// </summary>
+    /// <param name="_COMCONFIG"> com config including COM port, baud rate and timeout e.g. "COM4,19200,30"</param>
+    /// <param name="_receiversNo">list of receivers e.g. 09124568798,09134568798 </param>
+    /// <param name="_isActive">true: port will be active false: passive</param>
+    public void Setup(string _COMCONFIG, string _receiversNo, bool _isActive)
+    {
+        try
+        {
+            isActive = _isActive;
+            string[] commConfig = _COMCONFIG.Split(',').Select(sValue => sValue.Trim()).ToArray();
+            receiversNo = _receiversNo.Split(',').Select(sValue => sValue.Trim()).ToArray();
+            if (commConfig.Length != 3 || receiversNo.Length < 1)
+                throw new Exception("Bad Arguments for constructing SMSPort!!");
+            portName = commConfig[0];
+            baudRate = 19200;
+            timeout = 5000;
+            int.TryParse(commConfig[1], out baudRate);
+            int.TryParse(commConfig[2], out timeout);
+            Connect(portName, baudRate, timeout);
+            Log("INFO", String.Format("SMS port setuped to send to port: {0} baudRate: {1} timeout: {2} to notify numbers: {3}", _COMCONFIG[0], _COMCONFIG[1], _COMCONFIG[2], _receiversNo));
+        }
+        catch (Exception ex)
+        {
+            Log("ERROR", "Exception in setup port: " + ex.Message);
         }
 
-        /// <summary>
-        /// Setup
-        /// </summary>
-        /// <param name="_COMCONFIG"> com config including COM port, baud rate and timeout e.g. "COM4,19200,30"</param>
-        /// <param name="_receiversNo">list of receivers e.g. 09124568798,09134568798 </param>
-        /// <param name="_isActive">true: port will be active false: passive</param>
-        public void Setup(string _COMCONFIG, string _receiversNo, bool _isActive)
+    }
+    public void Dispose()
+    {
+        if (comm != null && comm.IsOpen())
+            comm.Close();
+    }
+
+
+    public static void Log(string level, string message)
+    {
+        Console.WriteLine("[{0}] [SMS] {1}", level, message);
+    }
+
+    //public void OnNext(Events.Message value)
+    //{
+    //    if (value.majorType == (int)MajorType.Event)
+    //    {
+    //        try
+    //        {
+    //            if (isActive)
+    //            {
+    //                string message = value.ToSMSText();
+    //                if (message.Length > 70)
+    //                    message = message.Substring(0, 70);
+    //                if (comm == null || !comm.IsOpen())
+    //                    Connect(portName, baudRate, timeout);
+    //                SendSMS(true, message, receiversNo);
+    //            }
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            Log("ERROR","Exception in sending SMS: " + ex.Message);
+    //            //HITLog.Write("SMSPort@HITCEPLib", "Exception in sending SMS: " + ex.Message
+    //            //    , EventLogEntryType.Error, false);
+    //        }
+    //    }
+    //}
+
+    public void Connect(string _portName, int _baudRate, int _timeout)
+    {
+        try
         {
-            try
+            if (isActive)
             {
-                isActive = _isActive;
-                string[] commConfig = _COMCONFIG.Split(',').Select(sValue => sValue.Trim()).ToArray();
-                receiversNo = _receiversNo.Split(',').Select(sValue => sValue.Trim()).ToArray();
-                if (commConfig.Length != 3 || receiversNo.Length < 1)
-                    throw new Exception("Bad Arguments for constructing SMSPort!!");
-                portName = commConfig[0];
-                baudRate = 19200;
-                timeout = 5000;
-                int.TryParse(commConfig[1], out baudRate);
-                int.TryParse(commConfig[2], out timeout);
-                Connect(portName, baudRate, timeout);
-                Log("INFO", String.Format("SMS port setuped to send to port: {0} baudRate: {1} timeout: {2} to notify numbers: {3}", _COMCONFIG[0], _COMCONFIG[1], _COMCONFIG[2], _receiversNo));
+                string portName = _portName;
+                int baudRate = _baudRate;
+                int timeout = _timeout;
+                comm = new GsmCommMain(portName, baudRate, timeout);
+                comm.Open();
             }
-            catch (Exception ex)
+        }
+        catch (Exception e)
+        {
+            Log("ERROR", "Exception in Connecting to GSM Modem: " + e.Message);
+        }
+    }
+
+    #region SEND SMS
+    public void SendSMS(bool unicode, string message, string[] receiversNo)
+    {
+        try
+        {
+            if (isActive)
             {
-                Log("ERROR", "Exception in setup port: " + ex.Message);
-            }
-
-        }
-        public void Dispose()
-        {
-            if (comm != null && comm.IsOpen())
-                comm.Close();
-        }
-
-
-        public static void Log(string level, string message)
-        {
-            Console.WriteLine("[{0}] [SMS] {1}", level,message);
-        }
-
-        //public void OnNext(Events.Message value)
-        //{
-        //    if (value.majorType == (int)MajorType.Event)
-        //    {
-        //        try
-        //        {
-        //            if (isActive)
-        //            {
-        //                string message = value.ToSMSText();
-        //                if (message.Length > 70)
-        //                    message = message.Substring(0, 70);
-        //                if (comm == null || !comm.IsOpen())
-        //                    Connect(portName, baudRate, timeout);
-        //                SendSMS(true, message, receiversNo);
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            Log("ERROR","Exception in sending SMS: " + ex.Message);
-        //            //HITLog.Write("SMSPort@HITCEPLib", "Exception in sending SMS: " + ex.Message
-        //            //    , EventLogEntryType.Error, false);
-        //        }
-        //    }
-        //}
-
-        public void Connect(string _portName, int _baudRate, int _timeout)
-        {
-            try
-            {
-                if (isActive)
+                if (comm != null && comm.IsOpen())
                 {
-                    string portName = _portName;
-                    int baudRate = _baudRate;
-                    int timeout = _timeout;
-                    comm = new GsmCommMain(portName, baudRate, timeout);
-                    comm.Open();
-                }
-            }
-            catch (Exception e)
-            {
-                Log("ERROR", "Exception in Connecting to GSM Modem: " + e.Message);
-            }
-        }
-
-        #region SEND SMS
-        public void SendSMS(bool unicode, string message, string[] receiversNo)
-        {
-            try
-            {
-                if (isActive)
-                {
-                    if (comm != null && comm.IsOpen())
+                    if (unicode)
                     {
-                        if (unicode)
+                        byte dcs = (byte)DataCodingScheme.GeneralCoding.Alpha16Bit;
+                        SmsSubmitPdu pdu;
+                        foreach (var receiverNo in receiversNo)
                         {
-                            byte dcs = (byte)DataCodingScheme.GeneralCoding.Alpha16Bit;
-                            SmsSubmitPdu pdu;
-                            foreach (var receiverNo in receiversNo)
-                            {
-                                pdu = new SmsSubmitPdu(message, receiverNo, dcs);
-                                comm.SendMessage(pdu);
-                            }
-                        }
-                        else
-                        {
-                            SmsSubmitPdu pdu;
-                            foreach (var receiverNo in receiversNo)
-                            {
-                                pdu = new SmsSubmitPdu(message, receiverNo);
-                                comm.SendMessage(pdu);
-                            }
+                            pdu = new SmsSubmitPdu(message, receiverNo, dcs);
+                            comm.SendMessage(pdu);
                         }
                     }
                     else
                     {
-                        Log("ERROR", "GSM COM port is not open. Cannot Send SMS!");
+                        SmsSubmitPdu pdu;
+                        foreach (var receiverNo in receiversNo)
+                        {
+                            pdu = new SmsSubmitPdu(message, receiverNo);
+                            comm.SendMessage(pdu);
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Log("ERROR", "Exception in Sending SMS: " + ex.Message);
+                else
+                {
+                    Log("ERROR", "GSM COM port is not open. Cannot Send SMS!");
+                }
             }
         }
-        #endregion
-
-        #region RECEIVE SMS
-        public DecodedShortMessage[] ReadSMS()
+        catch (Exception ex)
         {
-            string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
-            try
-            {
-                // Read all SMS messages from the storage
-                DecodedShortMessage[] messages = comm.ReadMessages(PhoneMessageStatus.All, storage);
-                return messages;
-            }
-            catch (Exception ex)
-            {
-                Log("ERROR", "Exception in Reading SMS from GSM Modem: " + ex.Message);
-                return new DecodedShortMessage[0];
-            }
+            Log("ERROR", "Exception in Sending SMS: " + ex.Message);
         }
-
-        public void DelSMS(int index)
-        {
-            string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
-            try
-            {
-                // Delete the message with the specified index from storage
-                if (index >= 0)
-                    comm.DeleteMessage(index, storage);
-            }
-            catch (Exception ex)
-            {
-                Log("ERROR", "Exception in Deleting SMS from GSM Modem: " + ex.Message);
-            }
-        }
-
-        public void DelAllSMS()
-        {
-            DelAllSMS(DeleteScope.All);
-        }
-
-        protected void DelAllSMS(DeleteScope scope)
-        {
-            string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
-            try
-            {
-                // Delete the message with the specified index from storage
-                comm.DeleteMessages(DeleteScope.All, storage);
-            }
-            catch (Exception ex)
-            {
-                Log("ERROR", "Exception in Deleting SMS from GSM Modem: " + ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// To delete all read sms
-        /// </summary>
-        public void DelAllReadSMS()
-        {
-            DelAllSMS(DeleteScope.Read);
-        }
-
-        #endregion
-
-        #region GENERAL
-
-        #endregion
-
     }
+    #endregion
+
+    #region RECEIVE SMS
+    public DecodedShortMessage[] ReadSMS()
+    {
+        string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
+        try
+        {
+            // Read all SMS messages from the storage
+            DecodedShortMessage[] messages = comm.ReadMessages(PhoneMessageStatus.All, storage);
+            return messages;
+        }
+        catch (Exception ex)
+        {
+            Log("ERROR", "Exception in Reading SMS from GSM Modem: " + ex.Message);
+            return new DecodedShortMessage[0];
+        }
+    }
+
+    public void DelSMS(int index)
+    {
+        string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
+        try
+        {
+            // Delete the message with the specified index from storage
+            if (index >= 0)
+                comm.DeleteMessage(index, storage);
+        }
+        catch (Exception ex)
+        {
+            Log("ERROR", "Exception in Deleting SMS from GSM Modem: " + ex.Message);
+        }
+    }
+
+    public void DelAllSMS()
+    {
+        DelAllSMS(DeleteScope.All);
+    }
+
+    protected void DelAllSMS(DeleteScope scope)
+    {
+        string storage = PhoneStorageType.Sim; // ALTERNATIVE: PhoneStorageType.Phone
+        try
+        {
+            // Delete the message with the specified index from storage
+            comm.DeleteMessages(DeleteScope.All, storage);
+        }
+        catch (Exception ex)
+        {
+            Log("ERROR", "Exception in Deleting SMS from GSM Modem: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// To delete all read sms
+    /// </summary>
+    public void DelAllReadSMS()
+    {
+        DelAllSMS(DeleteScope.Read);
+    }
+
+    #endregion
+
+    #region GENERAL
+
+    #endregion
+
+}
 }

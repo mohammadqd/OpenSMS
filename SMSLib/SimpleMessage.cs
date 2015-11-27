@@ -1,6 +1,6 @@
-﻿using GsmComm.GsmCommunication;
+﻿using System;
+using GsmComm.GsmCommunication;
 using GsmComm.PduConverter;
-using System;
 
 namespace opensms
 {
