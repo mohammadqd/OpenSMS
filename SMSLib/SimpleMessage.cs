@@ -8,7 +8,7 @@ namespace opensms
     /// <summary>
     /// Simple Messages (e.g. received SMSs)
     /// </summary>
-    public class SimpleMessage
+    public class SimpleMessage: IMessage
     {
         /// <summary>
         /// message sender phone number
