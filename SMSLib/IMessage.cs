@@ -9,6 +9,17 @@ namespace opensms
     public interface IMessage
     {
         /// <summary>
+        /// return a cloned object
+        /// </summary>
+        /// <returns></returns>
+        IMessage Clone();
+
+        /// <summary>
+        /// Unique SMS ID
+        /// </summary>
+        int ID { get; set; }
+        
+        /// <summary>
         /// message sender phone number
         /// </summary>
         string sender { get; set; }
@@ -28,6 +39,11 @@ namespace opensms
         /// is it an ASCI or Unicode SMS
         /// </summary>
         bool isUnicode { get; set; }
+
+        /// <summary>
+        /// is it a complete message (esp. for multi messages)
+        /// </summary>
+        bool isComplete { get; }
 
         /// <summary>
         /// User Data Header 

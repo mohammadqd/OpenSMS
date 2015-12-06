@@ -74,14 +74,32 @@ namespace opensms
         {
             get
             {
-                bool completeness = true;
-                for (int i = 0; i < messages.Length; i++)
-                    if (messages[i] == null)
-                        completeness = false;
-                return completeness;
+                if (isInitialized)
+                {
+                    bool completeness = true;
+                    for (int i = 0; i < messages.Length; i++)
+                        if (messages[i] == null)
+                            completeness = false;
+                    return completeness;
+                }
+                else
+                    return false;
             }
         }
-           
+
+        public int ID
+        {
+            get
+            {
+                return CSMSRefNo;
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         protected void Initialize(IMessage _message)
         {
             // first initialization
@@ -118,5 +136,38 @@ namespace opensms
             }
         }
 
+        public MultiMessage()
+        {
+            isInitialized = false;
+        }
+
+        public MultiMessage(IMessage[] _messages)
+            :this()
+        {
+            if (_messages != null && _messages.Length > 0)
+            {
+                bool needInit = true;
+                foreach (IMessage msg in _messages)
+                {
+                    if (msg != null)
+                    {
+                        if (needInit)
+                        {
+                            Initialize(msg);
+                            needInit = false;
+                        }
+                        else
+                        {
+                            InsertMessage(msg);
+                        }
+                    }
+                }
+            }
+        }
+
+        public IMessage Clone()
+        {
+            return new MultiMessage(messages);
+        }
     }
 }

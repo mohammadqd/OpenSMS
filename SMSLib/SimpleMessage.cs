@@ -8,7 +8,7 @@ namespace opensms
     /// <summary>
     /// Simple Messages (e.g. received SMSs)
     /// </summary>
-    public class SimpleMessage: IMessage
+    public class SimpleMessage : IMessage
     {
         /// <summary>
         /// message sender phone number
@@ -111,19 +111,40 @@ namespace opensms
         /// </summary>
         public bool isCSMS { get; set; }
 
+        public int ID
+        {
+            get
+            {
+                return CSMSRefNo;
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public bool isComplete
+        {
+            get
+            {
+                return true;
+            }        
+        }
+
         /// <summary>
         /// Designated Constructor
         /// </summary>
         /// <param name="_time">timestamp of message</param>
         /// <param name="_sender">message sender phone number</param>
-        /// <param name="_data">message body</param>
-        protected void Initialize(DateTime _time, string _sender, byte[] _UDH, bool _isUnicode, bool _isCSMS, string _data)
+        /// <param name="_pureMessage">message body</param>
+        protected void Initialize(DateTime _time, string _sender, byte[] _UDH, bool _isUnicode, bool _isCSMS, string _pureMessage)
         {
             time = _time;
             isCSMS = _isCSMS;
             sender = _sender;
             UDH = _UDH;
-            pureMessage = _data;
+            pureMessage = _pureMessage;
         }
 
         /// <summary>
@@ -131,10 +152,10 @@ namespace opensms
         /// </summary>
         /// <param name="_time">timestamp of message</param>
         /// <param name="_sender">message sender phone number</param>
-        /// <param name="_data">message body</param>
-        public SimpleMessage(DateTime _time, string _sender, byte[] _UDH, bool _isUnicode, bool _isCSM, string _data)
+        /// <param name="_pureMessage">message body</param>
+        public SimpleMessage(DateTime _time, string _sender, byte[] _UDH, bool _isUnicode, bool _isCSM, string _pureMessage)
         {
-            Initialize(_time, _sender, _UDH, _isUnicode, _isCSM, _data);
+            Initialize(_time, _sender, _UDH, _isUnicode, _isCSM, _pureMessage);
         }
 
         /// <summary>
@@ -155,8 +176,8 @@ namespace opensms
                 else if (_isUnicode)
                     _pureMessage = msg.Data.GetUserDataTextWithoutHeader();
                 else
-                    _pureMessage = newData.UserDataText.Substring(msg.Data.GetUserDataHeader().Length+1);
-                Initialize(newData.GetTimestamp().ToDateTime(), newData.OriginatingAddress, (_isCSMS)?msg.Data.GetUserDataHeader():null, _isUnicode, _isCSMS, _pureMessage);
+                    _pureMessage = newData.UserDataText.Substring(msg.Data.GetUserDataHeader().Length + 1);
+                Initialize(newData.GetTimestamp().ToDateTime(), newData.OriginatingAddress, (_isCSMS) ? msg.Data.GetUserDataHeader() : null, _isUnicode, _isCSMS, _pureMessage);
             }
         }
 
@@ -168,6 +189,11 @@ namespace opensms
         public static SimpleMessage ToSimpleMessage(DecodedShortMessage msg)
         {
             return new SimpleMessage(msg);
+        }
+
+        public IMessage Clone()
+        {
+            return new SimpleMessage(time, sender, UDH, isUnicode, isCSMS, pureMessage);
         }
     }
 }
