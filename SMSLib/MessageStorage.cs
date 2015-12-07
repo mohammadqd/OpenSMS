@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace opensms
 {
-    class MessageStorage
+    public class MessageStorage
     {
         protected Dictionary<int, IMessage> storage;
 
@@ -32,17 +32,36 @@ namespace opensms
                 {
                     SMSPort.Log("WARNING", "SMS Conflict in MessageStorage");
                     IMessage oldMsg = oldElement.Clone();
-                    storage[msg.ID] = msg;
+                    AddToStorage(msg);
                     return oldMsg;
                 }
             }
             else // new element
             {
-                storage[msg.ID] = msg;
+                AddToStorage(msg);
                 return null;
             }
         }
 
+        /// <summary>
+        /// To add a message to storage
+        /// </summary>
+        /// <param name="msg">simple message to add</param>
+        protected void AddToStorage(IMessage msg)
+        {
+            if (msg != null)
+            {
+                if (!msg.isCSMS)
+                {
+                    storage[msg.ID] = msg;
+                }
+                else
+                {
+                    MultiMessage multiMessage = new MultiMessage(new IMessage[] { msg });
+                    storage[msg.ID] = multiMessage;
+                }
+            }
+        }
         /// <summary>
         /// To fetch a message and remove it from storage (optional)
         /// </summary>
@@ -62,6 +81,14 @@ namespace opensms
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// To delete all elements
+        /// </summary>
+        public void Clear()
+        {
+            storage.Clear();
         }
     }
 }

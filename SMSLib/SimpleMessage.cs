@@ -143,6 +143,7 @@ namespace opensms
             time = _time;
             isCSMS = _isCSMS;
             sender = _sender;
+            isUnicode = _isUnicode;
             UDH = _UDH;
             pureMessage = _pureMessage;
         }

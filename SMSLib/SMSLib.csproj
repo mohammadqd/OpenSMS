@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="IMessage.cs" />
     <Compile Include="MessageConcatenationException.cs" />
+    <Compile Include="MessageFactory.cs" />
     <Compile Include="MessageStorage.cs" />
     <Compile Include="MultiMessage.cs" />
     <Compile Include="SimpleMessage.cs" />

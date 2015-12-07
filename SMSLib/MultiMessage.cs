@@ -40,15 +40,18 @@ namespace opensms
         {
             get
             {
-                if (isComplete)
+                //if (isComplete)
+                //{
+                string concatenatedPureMessage = "";
+                for (int i = 0; i < messages.Length; i++)
                 {
-                    string concatenatedPureMessage = "";
-                    for (int i = 0; i < messages.Length; i++)
-                        concatenatedPureMessage += messages[i];
-                    return concatenatedPureMessage;
+                    if (messages[i] != null)
+                        concatenatedPureMessage += messages[i].pureMessage;
                 }
-                else
-                    throw new MessageConcatenationException("Trying to get pureMessage of an incomplete MultiMessage");
+                return concatenatedPureMessage;
+                //}
+                //else
+                //    throw new MessageConcatenationException("Trying to get pureMessage of an incomplete MultiMessage");
 
             }
             set
@@ -142,7 +145,7 @@ namespace opensms
         }
 
         public MultiMessage(IMessage[] _messages)
-            :this()
+            : this()
         {
             if (_messages != null && _messages.Length > 0)
             {
